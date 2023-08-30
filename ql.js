@@ -9,10 +9,10 @@ const qlDir = '/ql';
 const fs = require('fs');
 let Fileexists = fs.existsSync('/ql/data/config/auth.json');
 let authFile="";
-if (Fileexists) 
-	authFile="/ql/data/config/auth.json"
+if (Fileexists)
+  authFile="/ql/data/config/auth.json"
 else
-	authFile="/ql/config/auth.json"
+  authFile="/ql/config/auth.json"
 //const authFile = path.join(qlDir, 'config/auth.json');
 
 const api = got.extend({
@@ -25,12 +25,12 @@ async function getToken() {
   return authConfig.token;
 }
 
-module.exports.getEnvs = async () => {  
+module.exports.getEnvs = async (envName='elmck') => {
   const token = await getToken();
   const body = await api({
     url: 'api/envs',
     searchParams: {
-      searchValue: 'elmck',
+      searchValue: envName,
       t: Date.now(),
     },
     headers: {
@@ -84,14 +84,14 @@ module.exports.addEnv = async (cookie, remarks) => {
   return body;
 };
 
-module.exports.updateEnv = async (cookie, eid, remarks) => {
+module.exports.updateEnv = async (cookie, eid, remarks,envName='elmck') => {
   const token = await getToken();
   const body = await api({
     method: 'put',
     url: 'api/envs',
     params: { t: Date.now() },
     json: {
-      name: 'elmck',
+      name: envName,
       value: cookie,
       _id: eid,
       remarks,
@@ -105,14 +105,14 @@ module.exports.updateEnv = async (cookie, eid, remarks) => {
   return body;
 };
 
-module.exports.updateEnv11 = async (cookie, eid, remarks) => {
+module.exports.updateEnv11 = async (cookie, eid, remarks,envName='elmck') => {
   const token = await getToken();
   const body = await api({
     method: 'put',
     url: 'api/envs',
     params: { t: Date.now() },
     json: {
-      name: 'elmck',
+      name: envName,
       value: cookie,
       id: eid,
       remarks,
@@ -131,7 +131,7 @@ module.exports.DisableCk = async (eid) => {
   const body = await api({
     method: 'put',
     url: 'api/envs/disable',
-    params: { t: Date.now() },	
+    params: { t: Date.now() },
     body: JSON.stringify([eid]),
     headers: {
       Accept: 'application/json',
@@ -147,7 +147,7 @@ module.exports.EnableCk = async (eid) => {
   const body = await api({
     method: 'put',
     url: 'api/envs/enable',
-    params: { t: Date.now() },	
+    params: { t: Date.now() },
     body: JSON.stringify([eid]),
     headers: {
       Accept: 'application/json',
@@ -160,48 +160,51 @@ module.exports.EnableCk = async (eid) => {
 
 module.exports.getstatus = async(eid) => {
   var envs = await getEnvsByName('elmck');
-    var tempid = 0;
-    for (let i = 0; i < envs.length; i++) {
-		tempid = 0;
-        if (envs[i]._id) {
-            tempid = envs[i]._id;
-        }
-        if (envs[i].id) {
-            tempid = envs[i].id;
-        }
-        if (tempid == eid) {
-            return envs[i].status;
-        }
+  var tempid = 0;
+  for (let i = 0; i < envs.length; i++) {
+    tempid = 0;
+    if (envs[i]._id) {
+      tempid = envs[i]._id;
     }
-    return 99;
+    if (envs[i].id) {
+      tempid = envs[i].id;
+    }
+    if (tempid == eid) {
+      return envs[i].status;
+    }
+  }
+  return 99;
 };
 
 module.exports.getEnvById = async(eid) => {
-    const envs = await this.getEnvs();
-    var tempid = 0;
-    for (let i = 0; i < envs.length; i++) {
-        tempid = 0;
-        if (envs[i]._id) {
-            tempid = envs[i]._id;
-        }
-        if (envs[i].id) {
-            tempid = envs[i].id;
-        }
-        if (tempid == eid) {
-            return envs[i].value;
-        }
+  const envs = await this.getEnvs();
+  var tempid = 0;
+  for (let i = 0; i < envs.length; i++) {
+    tempid = 0;
+    if (envs[i]._id) {
+      tempid = envs[i]._id;
     }
-    return "";
+    if (envs[i].id) {
+      tempid = envs[i].id;
+    }
+    if (tempid == eid) {
+      return envs[i].value;
+    }
+  }
+  return "";
 };
 
-module.exports.getEnvByPtPin = async (Ptpin) => {
-  const envs = await this.getEnvs();
-  for (let i = 0; i < envs.length; i++) {	
-	var tempptpin = decodeURIComponent(envs[i].value.match(/pt_pin=([^; ]+)(?=;?)/) && envs[i].value.match(/pt_pin=([^; ]+)(?=;?)/)[1]);
-	if(tempptpin==Ptpin){		 
-		 return envs[i]; 
-	  }
-  }  
+module.exports.getEnvByUserId = async (userId) => {
+  const envs = await this.getEnvs('elmqqck');
+
+  for (let i = 0; i < envs.length; i++) {
+    let ck = envs[i].value
+    const user_id = ck.match(/USERID=([^; ]+)(?=;?)/) ? ck.match(/USERID=([^; ]+)(?=;?)/)[0] : '123';
+
+    if (user_id.indexOf(userId)!==-1) {
+      return envs[i]
+    }
+  }
   return "";
 };
 
